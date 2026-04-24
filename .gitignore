@@ -1,0 +1,37 @@
+# ---------------- Python ----------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ---------------- Virtual Environment ----------------
+venv/
+.env/
+.venv/
+
+# ---------------- Environment Variables ----------------
+.env
+
+# ---------------- OS Files ----------------
+.DS_Store
+Thumbs.db
+
+# ---------------- IDE ----------------
+.vscode/
+.idea/
+
+# ---------------- Logs ----------------
+*.log
+
+# ---------------- Data ----------------
+data/temp_uploads/
+
+# ---------------- Models / Cache ----------------
+.cache/
+*.pt
+*.bin
+
+# ---------------- Streamlit ----------------
+.streamlit/
+
+# ---------------- HuggingFace Cache ----------------
+huggingface/
