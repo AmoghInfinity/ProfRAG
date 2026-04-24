@@ -1,82 +1,205 @@
-# 📚 ProfRAG — AI Study Assistant
+# ProfRAG
 
-ProfRAG is an advanced Retrieval-Augmented Generation (RAG) system designed to help students interact with their study materials (PDFs, PPTs) and generate structured learning outputs such as explanations, flashcards, and exam questions.
-
----
-
-## 🚀 Features
-
-- 📄 Upload PDFs and PPTs
-- 🔍 Ask questions from your notes
-- 🧠 Generate structured answers (Definition, Explanation, Key Points)
-- 🧾 Create flashcards for revision
-- 📝 Generate exam-style questions
-- ⚡ Fast hybrid retrieval (Vector + BM25)
-- 🎯 Cross-encoder reranking
-- 🧹 Context compression for better accuracy
-- 💬 Streamlit-based interactive UI
+A Retrieval-Augmented Generation (RAG) system designed to process and understand documents such as PDFs and PowerPoint files. The system supports intelligent retrieval, reranking, context compression, answer generation, flashcard creation, and evaluation using RAGAS.
 
 ---
 
-## 🧠 Architecture
+## Overview
 
-Ingestion → Chunking → Embeddings → Hybrid Retrieval → Reranking → Compression → Generation
+ProfRAG is an end-to-end pipeline that converts raw documents into a queryable knowledge system. It combines retrieval techniques with language models to generate answers grounded in provided context.
+
+The system is modular and designed for experimentation as well as practical usage.
 
 ---
 
-## 📁 Project Structure
-```
-PROFRAG/
+## Features
+
+- Document ingestion (PDF, PPT)
+- Context-aware chunking
+- BGE embeddings for semantic representation
+- Hybrid retrieval
+- Cross-encoder reranking
+- Context compression
+- LLM-based answer generation (Groq)
+- Flashcard generation and export
+- RAGAS-based evaluation (faithfulness, relevancy, precision, recall)
+- Streamlit interface
+
+---
+
+## Architecture
+
+Raw Documents (PDF / PPT)
+        │
+        ▼
+Text Extraction
+        │
+        ▼
+Chunking
+        │
+        ▼
+Embeddings (BGE)
+        │
+        ▼
+Hybrid Retrieval
+        │
+        ▼
+Reranking
+        │
+        ▼
+Context Compression
+        │
+        ▼
+LLM Generation (Groq)
+        │
+        ▼
+Evaluation (RAGAS)
+
+---
+
+## Project Structure
+
+ProfRAG/
+│── ingestion/
+│   ├── pdf_parser.py
+│   ├── ppt_parser.py
 │
-├── app.py
-├── main.py
-├── requirements.txt
-├── README.md
-├── .env
+│── chunking/
+│   └── context_chunker.py
 │
-├── data/
-├── ingestion/
-├── chunking/
-├── embeddings/
-├── retrieval/
-├── reranking/
-├── compression/
-├── generation/
-├── utils/
-```
+│── embeddings/
+│   └── bge_embedder.py
+│
+│── retrieval/
+│   └── hybrid_retriever.py
+│
+│── reranking/
+│   └── reranker.py
+│
+│── compression/
+│   └── context_compressor.py
+│
+│── generation/
+│   └── generator.py
+│
+│── evaluation/
+│   └── ragas_eval.py
+│
+│── utils/
+│
+│── data/
+│   └── raw/
+│
+│── app.py
+│── main.py
+│── requirements.txt
+│── .gitignore
+│── README.md
+
 ---
 
-## ⚙️ Installation
+## Installation
 
-git clone https://github.com/AmoghInfinity/ProfRAG.git
+```bash
+git clone https://github.com/<your-username>/ProfRAG.git
 cd ProfRAG
 
 python -m venv venv
 venv\Scripts\activate
 
 pip install -r requirements.txt
+```
 
 ---
 
-## 🔑 Setup API Key
+## Environment Setup
 
-Create .env file:
+Create a `.env` file in the root directory:
 
+```
 GROQ_API_KEY=your_api_key_here
+```
 
 ---
 
-## ▶️ Run
+## Usage
 
+### Run pipeline
+
+```bash
+python main.py
+```
+
+### Run Streamlit UI
+
+```bash
 streamlit run app.py
+```
 
 ---
 
-## 📌 Future Improvements
+## Example Queries
 
-- Anki export
-- RAGAS evaluation
-- Multi-file support
-- Deployment
+- What is SVM?
+- Advantages of SVM
+- Types of SVM
+- What is a classification algorithm?
 
 ---
+
+## Evaluation
+
+The system evaluates performance using:
+
+- Faithfulness
+- Answer Relevancy
+- Context Precision
+- Context Recall
+
+Example output:
+
+```
+faithfulness: 0.82
+answer_relevancy: 0.79
+context_precision: 0.88
+context_recall: 0.85
+```
+
+---
+
+## Flashcards
+
+Flashcards can be generated from retrieved content.
+
+Example format:
+
+```
+Q: What is SVM?
+A: A supervised learning algorithm used for classification and regression.
+```
+
+---
+
+## Design Choices
+
+- BGE embeddings for semantic similarity
+- Hybrid retrieval for balanced results
+- Cross-encoder reranking for improved ranking
+- Context compression to reduce irrelevant content
+- Groq for fast inference
+- RAGAS for evaluation
+
+---
+
+## Future Scope
+
+- Vector database integration (FAISS or similar)
+- Query rewriting or expansion
+- Improved retrieval strategies
+- Evaluation improvements and benchmarking
+
+---
+
+## Author
+
+Amogh Gupta
