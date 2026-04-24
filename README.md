@@ -25,7 +25,7 @@ Ingestion → Chunking → Embeddings → Hybrid Retrieval → Reranking → Com
 ---
 
 ## 📁 Project Structure
-'''
+```
 PROFRAG/
 │
 ├── app.py
@@ -43,7 +43,7 @@ PROFRAG/
 ├── compression/
 ├── generation/
 ├── utils/
-'''
+```
 ---
 
 ## ⚙️ Installation
