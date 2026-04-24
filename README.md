@@ -101,7 +101,7 @@ ProfRAG/
 ## Installation
 
 ```bash
-git clone https://github.com/<your-username>/ProfRAG.git
+git clone https://github.com/AmoghInfinity/ProfRAG.git
 cd ProfRAG
 
 python -m venv venv
