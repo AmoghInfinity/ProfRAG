@@ -28,7 +28,7 @@ The system is modular and designed for experimentation as well as practical usag
 ---
 
 ## Architecture
-
+```
 Raw Documents (PDF / PPT)
         │
         ▼
@@ -54,11 +54,11 @@ LLM Generation (Groq)
         │
         ▼
 Evaluation (RAGAS)
-
+```
 ---
 
 ## Project Structure
-
+```
 ProfRAG/
 │── ingestion/
 │   ├── pdf_parser.py
@@ -95,7 +95,7 @@ ProfRAG/
 │── requirements.txt
 │── .gitignore
 │── README.md
-
+```
 ---
 
 ## Installation
