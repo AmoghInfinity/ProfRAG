@@ -48,28 +48,36 @@ Answer:
 """
 
         response = self.client.chat.completions.create(
-            model="llama-3.1-8b-instant",  # ✅ stable model
+            model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.2  # 🔥 lower = more factual
+            temperature=0.2
         )
 
         return response.choices[0].message.content.strip()
 
+    # 🔥 FINAL FLASHCARDS (STRONG + COMPLETE)
     def generate_flashcards(self, documents: List[Dict]) -> str:
         context = "\n\n".join([doc["text"] for doc in documents])
 
         prompt = f"""
-Create revision flashcards.
+You are generating high-quality study flashcards.
 
-Rules:
-- Short answers
+STRICT RULES:
+- Every flashcard MUST be a proper question
+- Convert concepts into full questions
+- Answers must be COMPLETE but concise (1–2 lines)
 - No repetition
-- Only from context
+- Use ONLY the provided content
+- Generate at least 8–12 flashcards if possible
 
-Format:
+Return ONLY valid JSON:
 
-Q: ...
-A: ...
+[
+  {{
+    "question": "What is ...?",
+    "answer": "Clear and complete answer..."
+  }}
+]
 
 Content:
 {context}
@@ -87,12 +95,14 @@ Content:
         context = "\n\n".join([doc["text"] for doc in documents])
 
         prompt = f"""
-Generate 5 exam questions.
+You are an exam setter.
 
-Rules:
-- Conceptual + theoretical
+Generate 5 high-quality exam questions.
+
+STRICT RULES:
+- Mix conceptual + theoretical questions
 - No repetition
-- Only from context
+- Use ONLY the provided content
 
 Content:
 {context}

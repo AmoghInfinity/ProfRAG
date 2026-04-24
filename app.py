@@ -10,6 +10,7 @@ from retrieval.hybrid_retriever import HybridRetriever
 from reranking.reranker import CrossEncoderReranker
 from compression.context_compressor import ContextCompressor
 from generation.generator import Generator
+from utils.anki_exporter import parse_flashcards, export_to_csv
 
 
 # ---------------- CONFIG ----------------
@@ -63,7 +64,7 @@ def build_pipeline(file_path):
     return retriever, embedder, reranker, compressor, generator
 
 
-# ---------------- FILE HANDLING (FIXED) ----------------
+# ---------------- FILE HANDLING ----------------
 UPLOAD_DIR = "data/temp_uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -103,7 +104,6 @@ if st.session_state.pipeline_ready:
         with st.chat_message(chat["role"]):
             st.markdown(chat["content"])
 
-    # Input
     query = st.chat_input("Ask something...")
 
     if query:
@@ -131,13 +131,40 @@ if st.session_state.pipeline_ready:
 
                     output = generator.generate_answer(query, results)
 
+                    st.markdown(output)
+
                 elif mode == "🧠 Flashcards":
 
                     results = retriever.retrieve("important concepts", embedder, top_k=10)
                     results = reranker.rerank("important concepts", results)
                     results = compressor.compress("important concepts", results)
 
-                    output = generator.generate_flashcards(results)
+                    raw_output = generator.generate_flashcards(results)
+
+                    flashcards = parse_flashcards(raw_output)
+
+                    if not flashcards:
+                        st.error("Failed to parse flashcards. Try again.")
+                    else:
+                        st.subheader("🧠 Flashcards")
+
+                        for i, card in enumerate(flashcards):
+                            st.markdown(f"**Q{i+1}: {card['question']}**")
+                            st.markdown(f"A: {card['answer']}")
+                            st.divider()
+
+                        # Export to CSV (Anki)
+                        csv_path = export_to_csv(flashcards)
+
+                        with open(csv_path, "rb") as f:
+                            st.download_button(
+                                label="📥 Download Anki CSV",
+                                data=f,
+                                file_name="anki_flashcards.csv",
+                                mime="text/csv"
+                            )
+
+                    output = raw_output
 
                 else:  # Exam Questions
 
@@ -147,27 +174,10 @@ if st.session_state.pipeline_ready:
 
                     output = generator.generate_exam_questions(results)
 
-                st.markdown(output)
+                    st.markdown(output)
 
                 # Save response
                 st.session_state.chat_history.append({"role": "assistant", "content": output})
-
-                # ---------------- DOWNLOAD ----------------
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    st.download_button(
-                        label="📥 Download Output",
-                        data=output,
-                        file_name="output.txt"
-                    )
-
-                with col2:
-                    st.download_button(
-                        label="📥 Download JSON",
-                        data=json.dumps({"output": output}, indent=2),
-                        file_name="output.json"
-                    )
 
                 # ---------------- SOURCES ----------------
                 with st.expander("📌 Sources"):

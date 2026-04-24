@@ -35,3 +35,6 @@ data/temp_uploads/
 
 # ---------------- HuggingFace Cache ----------------
 huggingface/
+
+# ---------------- Flashcard Cache ----------------
+flashcards.csv

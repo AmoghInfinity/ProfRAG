@@ -5,56 +5,102 @@ from retrieval.hybrid_retriever import HybridRetriever
 from reranking.reranker import CrossEncoderReranker
 from generation.generator import Generator
 from compression.context_compressor import ContextCompressor
+from evaluation.ragas_eval import run_ragas_evaluation
 
 
 def build_pipeline(file_path: str):
-    """
-    Build full pipeline once (extract → chunk → embed → index)
-    """
-    # Extract
     docs = extract_text_from_pdf(file_path)
-
-    # Chunk
     chunks = chunk_documents(docs)
 
-    # Embed
     embedder = BGEEmbedder()
     embedded_docs = embedder.embed_documents(chunks)
 
-    # Retriever
     retriever = HybridRetriever()
     retriever.build_index(embedded_docs)
 
-    # Reranker
     reranker = CrossEncoderReranker()
-
-    # Generator
     generator = Generator()
-
-    # Compressor (NEW)
     compressor = ContextCompressor()
 
     return retriever, embedder, reranker, generator, compressor
 
 
 def query_pipeline(query: str, retriever, embedder, reranker, generator, compressor):
-    """
-    Full query pipeline (retrieve → rerank → compress → generate)
-    """
-    # Step 1: Retrieve more candidates
     results = retriever.retrieve(query, embedder, top_k=10)
-
-    # Step 2: Rerank
     results = reranker.rerank(query, results)
-
-    # Step 3: Compress context (NEW)
     results = compressor.compress(query, results)
 
-    # Step 4: Generate answer
     answer = generator.generate_answer(query, results)
 
     return results, answer
 
+
+def print_scores(scores):
+    """
+    Safe printing for RAGAS EvaluationResult
+    Handles float, None, and string values
+    """
+
+    try:
+        scores_dict = scores.to_pandas().iloc[0].to_dict()
+    except Exception:
+        print("Failed to parse evaluation result")
+        return
+
+    print("Evaluation Scores:")
+
+    for key, value in scores_dict.items():
+
+        if value is None:
+            print(f"{key}: None")
+            continue
+
+        # Try to convert to float
+        try:
+            numeric_value = float(value)
+            print(f"{key}: {round(numeric_value, 4)}")
+        except (ValueError, TypeError):
+            # fallback for strings or unexpected values
+            print(f"{key}: {value}")
+
+def compute_average_scores(all_scores):
+    """
+    Compute average only for numeric RAGAS metrics
+    """
+
+    metric_keys = [
+        "faithfulness",
+        "answer_relevancy",
+        "context_precision",
+        "context_recall"
+    ]
+
+    avg_scores = {}
+
+    for key in metric_keys:
+        values = []
+
+        for score in all_scores:
+            try:
+                score_dict = score.to_pandas().iloc[0].to_dict()
+                value = score_dict.get(key)
+
+                if value is None:
+                    continue
+
+                # Ensure numeric
+                value = float(value)
+                values.append(value)
+
+            except Exception:
+                continue
+
+        if values:
+            avg_scores[key] = sum(values) / len(values)
+        else:
+            avg_scores[key] = None
+
+    return avg_scores
 
 if __name__ == "__main__":
     file_path = "data/raw/sample.pdf"
@@ -66,12 +112,21 @@ if __name__ == "__main__":
         "what is classification algorithm"
     ]
 
-    print("\n🔹 Building pipeline once...\n")
+    ground_truths = {
+        "What is SVM?": "SVM is a supervised learning algorithm used for classification and regression.",
+        "advantages of svm": "SVM works well in high dimensional spaces, avoids overfitting, and provides accurate classification.",
+        "types of svm": "Types of SVM include linear SVM and non-linear SVM.",
+        "what is classification algorithm": "A classification algorithm is a supervised learning method used to categorize data into classes."
+    }
+
+    print("\nBuilding pipeline...\n")
 
     retriever, embedder, reranker, generator, compressor = build_pipeline(file_path)
 
+    all_scores = []
+
     for query in queries:
-        print(f"\n\n🔍 Query: {query}\n")
+        print(f"\nQuery: {query}\n")
 
         results, answer = query_pipeline(
             query,
@@ -82,9 +137,28 @@ if __name__ == "__main__":
             compressor
         )
 
-        print("\n--- Answer ---")
+        print("Answer:")
         print(answer)
 
-        print("\n--- Top Sources ---")
+        print("\nTop Sources:")
         for r in results[:3]:
             print(r["metadata"])
+
+        print("\nRunning RAGAS Evaluation...\n")
+
+        eval_result = run_ragas_evaluation(
+            query=query,
+            answer=answer,
+            retrieved_docs=results,
+            ground_truth=ground_truths.get(query, "")
+        )
+
+        print_scores(eval_result)
+
+        all_scores.append(eval_result)
+
+    print("\nFinal Average Scores:\n")
+
+    avg_scores = compute_average_scores(all_scores)
+
+    print_scores(avg_scores)
